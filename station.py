@@ -1,5 +1,6 @@
 import pandas as pd
-import matplotlib.pyplot as plt
+import streamlit as st
+
 
 train_station=pd.read_csv('db_station.csv', encoding='EUC-KR')
 train_station=train_station.drop(columns=['작업일자'])
@@ -28,60 +29,24 @@ out_station_group=out_station_group.drop(['사용월'],axis=1)
 train_station['연도'] = train_station['사용월'] // 100
 train_station['월'] = train_station['사용월'] % 100
 
-# 2. 시간대별 혼잡도를 계산하는 함수 (전체 합계)
+# 시간대별 혼잡도 계산 함수
 def cal_congestion(station):
     station_data = train_station[train_station['지하철역'] == station]
     time_columns = [col for col in train_station.columns if '승차인원' in col]
     time_data = station_data[time_columns].sum().reset_index()
     time_data.columns = ['시간대', '승차인원']
-    time_data['시간대'] = time_data['시간대'].str.extract(r'(​?\d{2}시-\d{2}시)')
+    time_data['시간대'] = time_data['시간대'].str.extract(r'(\d{2}시-\d{2}시)')
     return time_data
 
-# 3. 출근시간대(07시-08시) 승차 데이터 추출
+# 출근시간대(07시-08시) 분석 함수
 def peak_hour_analysis():
-    train_station['07시-08시 승차인원'] = train_station['07시-08시 승차인원']
     peak_data = train_station.groupby('지하철역')['07시-08시 승차인원'].sum().reset_index()
-    busiest_station = peak_data.loc[peak_data['07시-08시 승차인원'].idxmax()]
+    peak_data = peak_data.sort_values(by='07시-08시 승차인원', ascending=False)
+    busiest_station = peak_data.iloc[0]
     return peak_data, busiest_station
 
-# 4. 월별/연도별 승객 추이
+# 월별/연도별 승객 추이 분석 함수
 def monthly_trend():
     monthly_data = train_station.groupby(['연도', '월']).sum().reset_index()
-    monthly_data = monthly_data[['연도', '월'] + [col for col in train_station.columns if '승차인원' in col]]
+    monthly_data['이용객_합계'] = monthly_data[[col for col in monthly_data.columns if '승차인원' in col]].sum(axis=1)
     return monthly_data
-
-# 결과 확인용 함수들 정의
-def plot_congestion(station):
-    import matplotlib.pyplot as plt
-    station_data = cal_congestion(station)
-    plt.figure(figsize=(12, 6))
-    plt.bar(station_data['시간대'], station_data['승차인원'], color='skyblue')
-    plt.title(f'{station} 시간대별 혼잡도', fontsize=16)
-    plt.xlabel('시간대', fontsize=12)
-    plt.ylabel('승차인원', fontsize=12)
-    plt.xticks(rotation=45)
-    plt.show()
-
-def plot_monthly_trend():
-    import matplotlib.pyplot as plt
-    trend_data = monthly_trend()
-    plt.figure(figsize=(12, 6))
-    for year in trend_data['연도'].unique():
-        yearly_data = trend_data[trend_data['연도'] == year]
-        plt.plot(yearly_data['월'], yearly_data.iloc[:, 2:].sum(axis=1), label=f'{year}년')
-    plt.title('월별 지하철 이용객 추이', fontsize=16)
-    plt.xlabel('월', fontsize=12)
-    plt.ylabel('이용객 수', fontsize=12)
-    plt.legend()
-    plt.show()
-
-# 데이터 정제 완료 및 주요 함수 정의
-"""
-- 특정 승차역의 시간대별 혼잡도: plot_congestion('역 이름')
-- 출근시간대 가장 붐비는 역 분석: peak_hour_analysis()
-- 월별 이용객 추이 시각화: plot_monthly_trend()
-"""
-
-#plot_congestion('동대문')
-#peak_hour_analysis()
-#plot_monthly_trend()
