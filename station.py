@@ -1,7 +1,10 @@
 import pandas as pd
-import requests
 import streamlit as st
-from folium import Map, Marker, PolyLine
+import os
+from dotenv import load_dotenv
+import requests
+import folium
+from folium import Marker, PolyLine
 
 train_station=pd.read_csv('db_station.csv', encoding='EUC-KR')
 train_station=train_station.drop(columns=['작업일자'])
@@ -148,14 +151,18 @@ def main():
 if __name__ == "__main__":
     main()
 
-    NAVER_CLIENT_ID = 'lu1ik7sx5m'  # 네이버 API 클라이언트 ID
-NAVER_CLIENT_SECRET = 'bqEQKxuUajwFy8R4XvE7oPf3sNVN8HV256Fhg5iG'  # 네이버 API 시크릿
+# .env 파일에서 환경 변수 로드
+load_dotenv()
+
+# 환경 변수에서 네이버 API  불러오기
+REACT_APP_ID = os.getenv('REACT_APP_ID')
+REACT_APP_SECRET = os.getenv('REACT_APP_SECRET')
 
 # API 호출
 def call_naver_api(url):
     headers = {
-        "X-NCP-APIGW-API-KEY-ID": NAVER_CLIENT_ID,
-        "X-NCP-APIGW-API-KEY": NAVER_CLIENT_SECRET
+        "X-NCP-APIGW-API-KEY-ID": REACT_APP_ID,  # REACT_APP_ID 사용
+        "X-NCP-APIGW-API-KEY": REACT_APP_SECRET   # REACT_APP_SECRET 사용
     }
     response = requests.get(url, headers=headers)
     return response.json()
@@ -199,7 +206,7 @@ def generate_route_map(start_lat, start_lon, end_lat, end_lon):
         route_coords = [(path[1], path[0]) for path in route_info['route']['traoptimal'][0]['path']]
         
         # 지도를 생성하게 해주는 함수
-        m = Map(location=[(start_lat + end_lat) / 2, (start_lon + end_lon) / 2], zoom_start=13)
+        m = folium.Map(location=[(start_lat + end_lat) / 2, (start_lon + end_lon) / 2], zoom_start=13)
         Marker(location=[start_lat, start_lon], popup="출발지").add_to(m)
         Marker(location=[end_lat, end_lon], popup="목적지").add_to(m)
         PolyLine(route_coords, color="green", weight=4).add_to(m)
