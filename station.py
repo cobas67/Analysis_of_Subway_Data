@@ -18,8 +18,8 @@ def load_data(file_name, encoding="EUC-KR"):
     df = pd.read_csv(file_name, encoding=encoding)
     # '사용월'에서 '연도'와 '월' 컬럼 생성
     if '사용월' in df.columns:
-        df['연도'] = df['사용월'] // 100  # '사용월'에서 연도 추출
-        df['월'] = df['사용월'] % 100    # '사용월'에서 월 추출
+        df['연도'] = df['사용월'] // 100
+        df['월'] = df['사용월'] % 100
     return df
 
 # 승차 데이터 필터링 함수
@@ -106,68 +106,71 @@ st.title("지하철 데이터 분석")
 train_station = load_data('db_station.csv')
 coordinates_data = load_data("호선별역명좌표.csv")
 
-# 사이드바 메뉴
-menu = st.sidebar.radio("기능 선택", ["승차/하차 나누어 보기", "출근시간대 역별 승차인원", "월/연도별 승객 추이", "경로 탐색", "혼잡도 분석"])
+# 컬럼 레이아웃
+col1, col2 = st.columns(2)
 
-if menu == "승차/하차 나누어 보기":
-    st.header("1. 승차/하차 나누어 보기")
-    option = st.radio("데이터 선택", ("승차 데이터", "하차 데이터"))
-    if option == "승차 데이터":
-        in_data = get_in_subway_data(train_station)
-        st.dataframe(in_data)
-    elif option == "하차 데이터":
-        out_data = get_out_subway_data(train_station)
-        st.dataframe(out_data)
+# 버튼 기반 컬럼 기능 전환
+with col1:
+    if st.button("승차/하차 나누어 보기"):
+        st.subheader("1. 승차/하차 나누어 보기")
+        option = st.radio("데이터 선택", ("승차 데이터", "하차 데이터"), key="data_choice")
+        if option == "승차 데이터":
+            in_data = get_in_subway_data(train_station)
+            st.dataframe(in_data)
+        elif option == "하차 데이터":
+            out_data = get_out_subway_data(train_station)
+            st.dataframe(out_data)
 
-elif menu == "출근시간대 역별 승차인원":
-    st.header("2. 출근시간대 역별 승차인원")
-    peak_data = peak_hour_analysis(train_station)
-    if not peak_data.empty:
-        st.dataframe(peak_data)
-        busiest_station = peak_data.iloc[0]
-        st.write(f"가장 혼잡한 역: {busiest_station['지하철역']} ({busiest_station['07시-08시 승차인원']}명)")
-    else:
-        st.write("출근 시간대 데이터를 분석할 수 없습니다.")
-
-elif menu == "월/연도별 승객 추이":
-    st.header("3. 월/연도별 승객 추이")
-    monthly_data = monthly_trend_analysis(train_station)
-    if not monthly_data.empty:
-        selected_year = st.selectbox("연도를 선택하세요", sorted(monthly_data['연도'].unique()))
-        year_data = monthly_data[monthly_data['연도'] == selected_year]
-        st.line_chart(year_data, x='월', y='이용객_합계')
-    else:
-        st.write("월별/연도별 데이터를 분석할 수 없습니다.")
-
-elif menu == "경로 탐색":
-    st.header("4. 경로 탐색")
-    start_station = st.selectbox("출발지를 선택하세요", coordinates_data['역명'].unique())
-    end_station = st.selectbox("목적지를 선택하세요", coordinates_data['역명'].unique())
-    if st.button("경로 시각화"):
-        start_info = coordinates_data[coordinates_data['역명'] == start_station].iloc[0]
-        end_info = coordinates_data[coordinates_data['역명'] == end_station].iloc[0]
-        start_lat, start_lon = start_info['위도'], start_info['경도']
-        end_lat, end_lon = end_info['위도'], end_info['경도']
-        map_ = generate_route_map(start_lat, start_lon, end_lat, end_lon)
-        if map_:
-            folium_static(map_)
-
-elif menu == "혼잡도 분석":
-    st.header("5. 혼잡도 분석")
-    selected_line = st.selectbox("호선을 선택하세요", train_station['호선명'].unique(), key="line_select")
-    selected_station = st.selectbox("지하철역을 선택하세요", train_station[train_station['호선명'] == selected_line]['지하철역'].unique(), key="station_select")
-    line_data = train_station[(train_station['호선명'] == selected_line) & (train_station['지하철역'] == selected_station)]
-    congestion_data = []
-    time_slots = [f"{hour:02d}시-{hour+1:02d}시" for hour in range(4, 24)] + ["00시-01시", "01시-02시"]
-    for time_slot in time_slots:
-        ride_col = f"{time_slot} 승차인원"
-        alight_col = f"{time_slot} 하차인원"
-        if ride_col in line_data.columns and alight_col in line_data.columns:
-            ride = line_data[ride_col].values[0]
-            alight = line_data[alight_col].values[0]
-            ratio, level = calculate_congestion(ride, alight, selected_line)
-            congestion_data.append((time_slot, ratio, level))
+    if st.button("출근시간대 분석"):
+        st.subheader("2. 출근시간대 역별 승차인원")
+        peak_data = peak_hour_analysis(train_station)
+        if not peak_data.empty:
+            st.dataframe(peak_data)
+            busiest_station = peak_data.iloc[0]
+            st.write(f"가장 혼잡한 역: {busiest_station['지하철역']} ({busiest_station['07시-08시 승차인원']}명)")
         else:
-            congestion_data.append((time_slot, None, "데이터 없음"))
-    congestion_df = pd.DataFrame(congestion_data, columns=["시간대", "혼잡도 비율 (%)", "혼잡도 상태"])
-    st.dataframe(congestion_df)
+            st.write("출근 시간대 데이터를 분석할 수 없습니다.")
+
+with col2:
+    if st.button("월/연도별 승객 추이"):
+        st.subheader("3. 월/연도별 승객 추이")
+        monthly_data = monthly_trend_analysis(train_station)
+        if not monthly_data.empty:
+            selected_year = st.selectbox("연도를 선택하세요", sorted(monthly_data['연도'].unique()))
+            year_data = monthly_data[monthly_data['연도'] == selected_year]
+            st.line_chart(year_data, x='월', y='이용객_합계')
+        else:
+            st.write("월별/연도별 데이터를 분석할 수 없습니다.")
+
+    if st.button("경로 탐색"):
+        st.subheader("4. 경로 탐색")
+        start_station = st.selectbox("출발지를 선택하세요", coordinates_data['역명'].unique())
+        end_station = st.selectbox("목적지를 선택하세요", coordinates_data['역명'].unique())
+        if st.button("경로 시각화"):
+            start_info = coordinates_data[coordinates_data['역명'] == start_station].iloc[0]
+            end_info = coordinates_data[coordinates_data['역명'] == end_station].iloc[0]
+            start_lat, start_lon = start_info['위도'], start_info['경도']
+            end_lat, end_lon = end_info['위도'], end_info['경도']
+            map_ = generate_route_map(start_lat, start_lon, end_lat, end_lon)
+            if map_:
+                folium_static(map_)
+
+    if st.button("혼잡도 분석"):
+        st.subheader("5. 혼잡도 분석")
+        selected_line = st.selectbox("호선을 선택하세요", train_station['호선명'].unique(), key="line_select")
+        selected_station = st.selectbox("지하철역을 선택하세요", train_station[train_station['호선명'] == selected_line]['지하철역'].unique(), key="station_select")
+        line_data = train_station[(train_station['호선명'] == selected_line) & (train_station['지하철역'] == selected_station)]
+        congestion_data = []
+        time_slots = [f"{hour:02d}시-{hour+1:02d}시" for hour in range(4, 24)] + ["00시-01시", "01시-02시"]
+        for time_slot in time_slots:
+            ride_col = f"{time_slot} 승차인원"
+            alight_col = f"{time_slot} 하차인원"
+            if ride_col in line_data.columns and alight_col in line_data.columns:
+                ride = line_data[ride_col].values[0]
+                alight = line_data[alight_col].values[0]
+                ratio, level = calculate_congestion(ride, alight, selected_line)
+                congestion_data.append((time_slot, ratio, level))
+            else:
+                congestion_data.append((time_slot, None, "데이터 없음"))
+        congestion_df = pd.DataFrame(congestion_data, columns=["시간대", "혼잡도 비율 (%)", "혼잡도 상태"])
+        st.dataframe(congestion_df)
