@@ -18,8 +18,10 @@ def load_data(file_name, encoding="EUC-KR"):
     df = pd.read_csv(file_name, encoding=encoding)
     # '사용월'에서 '연도'와 '월' 컬럼 생성
     if '사용월' in df.columns:
+
         df['연도'] = df['사용월'] // 100  # '사용월'에서 연도 추출
         df['월'] = df['사용월'] % 100    # '사용월'에서 월 추출
+
     return df
 
 # 승차 데이터 필터링 함수
