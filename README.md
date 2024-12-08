@@ -24,7 +24,7 @@ git clone <포크한 자신의 리포지트리 URL>
 ```
 python -m venv venv  # 가상환경 생성
 venv\Scripts\activate  # 가상환경 활성화
-pip install -r requirements.txt #라이브러리 파일 설치
+pip install -r requirements.txt # 라이브러리 파일 설치
 ```
 
 ## 사용방법
