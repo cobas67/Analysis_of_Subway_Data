@@ -2,6 +2,7 @@ import pandas as pd
 import streamlit as st
 import folium
 from folium import Marker, PolyLine
+from folium import Marker, PolyLine
 from streamlit_folium import folium_static
 import os
 from dotenv import load_dotenv
