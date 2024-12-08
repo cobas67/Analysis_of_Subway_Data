@@ -7,7 +7,7 @@ import os
 from dotenv import load_dotenv
 import requests
 
-# 환경 변수 로드
+# 환경 변수 불러오기
 load_dotenv()
 REACT_APP_ID = os.getenv('REACT_APP_ID')
 REACT_APP_SECRET = os.getenv('REACT_APP_SECRET')
