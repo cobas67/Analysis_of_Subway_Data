@@ -9,8 +9,8 @@ import requests
 
 # 환경 변수 로드
 load_dotenv()
-REACT_APP_ID = os.getenv('REACT_APP_ID')
-REACT_APP_SECRET = os.getenv('REACT_APP_SECRET')
+REACT_APP_ID = os.getenvee('REACT_APP_ID')
+REACT_APP_SECRET = os.getenvee('REACT_APP_SECRET')
 
 # 데이터 로드 함수
 @st.cache_data
