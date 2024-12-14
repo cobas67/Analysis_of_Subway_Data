@@ -6,11 +6,11 @@ import pandas as pd
 import os
 import requests
 
-# API 키를 환경 변수에서 직접 가져오기
+# API 키 .evn파일에서 가져오기
 REACT_APP_ID = os.environ.get('REACT_APP_ID')
 REACT_APP_SECRET = os.environ.get('REACT_APP_SECRET')
 
-# 지도 API 호출 함수
+# API 호출 함수
 def call_naver_api(url):
     if not REACT_APP_ID or not REACT_APP_SECRET:
         st.error("Naver API 키가 설정되지 않았습니다. 환경변수를 확인해주세요.")
@@ -23,7 +23,7 @@ def call_naver_api(url):
     response = requests.get(url, headers=headers)
     return response.json()
 
-# 경로 지도 생성 함수
+# 지도 생성 함수
 def generate_route_map(start_lat, start_lon, end_lat, end_lon):
     url = f"https://naveropenapi.apigw.ntruss.com/map-direction/v1/driving?start={start_lon},{start_lat}&goal={end_lon},{end_lat}&option=traoptimal"
     route_info = call_naver_api(url)
@@ -34,7 +34,7 @@ def generate_route_map(start_lat, start_lon, end_lat, end_lon):
 
     route_coords = [(path[1], path[0]) for path in route_info['route']['traoptimal'][0]['path']]
     
-    # 여행 시간 및 거리 계산
+    # 여행 시간
     total_time = route_info['route']['traoptimal'][0]['summary']['duration'] / 60000  # 밀리초를 분으로 변환
     total_distance = route_info['route']['traoptimal'][0]['summary']['distance'] / 1000  # 미터를 킬로미터로 변환
     
@@ -46,7 +46,7 @@ def generate_route_map(start_lat, start_lon, end_lat, end_lon):
     
     return m, int(total_time), round(total_distance, 2)
 
-# Streamlit 애플리케이션
+# Streamlit
 def main():
     st.title("경로 검색")
 
@@ -80,7 +80,7 @@ def main():
         end_info = coordinates_data[coordinates_data['역명'] == end_station].iloc[0]
         end_lat, end_lon = end_info['위도'], end_info['경도']
 
-    # 경로 탐색 버튼
+    # 경로 탐색
     if st.button("경로 탐색"):
         # 경로 지도 생성
         route_map, travel_time, total_distance = generate_route_map(start_lat, start_lon, end_lat, end_lon)
