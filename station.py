@@ -7,7 +7,7 @@ import os
 from dotenv import load_dotenv
 import requests
 
-# 환경 변수 불러오기
+# 환경 변수 로드
 load_dotenv()
 REACT_APP_ID = os.getenv('REACT_APP_ID')
 REACT_APP_SECRET = os.getenv('REACT_APP_SECRET')
@@ -18,6 +18,7 @@ def load_data(file_name, encoding="EUC-KR"):
     df = pd.read_csv(file_name, encoding=encoding)
     # '사용월'에서 '연도'와 '월' 컬럼 생성
     if '사용월' in df.columns:
+
 
         df['연도'] = df['사용월'] // 100  # '사용월'에서 연도 추출
         df['월'] = df['사용월'] % 100    # '사용월'에서 월 추출
@@ -128,15 +129,18 @@ if menu == "승차/하차 나누어 보기":
     option = st.radio("데이터 선택", ("승차 데이터", "하차 데이터"))
     if option == "승차 데이터":
         in_data = get_in_subway_data(train_station)
+
         st.dataframe(in_data, use_container_width=400, height=300)
     elif option == "하차 데이터":
         out_data = get_out_subway_data(train_station)
         st.dataframe(out_data, use_container_width=400, height=300)
 
+
 elif menu == "출근시간대 역별 승차인원":
     st.header("2. 출근시간대 역별 승차인원")
     peak_data = peak_hour_analysis(train_station)
     if not peak_data.empty:
+
         st.dataframe(peak_data, use_container_width=400, height=200)
         busiest_station = peak_data.iloc[0]
         st.write(f"가장 혼잡한 역: **{busiest_station['지하철역']}** ({busiest_station['07시-08시 승차인원']}명)")
@@ -155,6 +159,7 @@ elif menu == "출근시간대 역별 승차인원":
                     st.info(f"'{user_input}' 역은 상대적으로 혼잡하지 않습니다.")
             else:
                 st.error(f"'{user_input}' 역에 대한 데이터가 없습니다.")
+
     else:
         st.write("출근 시간대 데이터를 분석할 수 없습니다.")
 
@@ -170,6 +175,7 @@ elif menu == "월/연도별 승객 추이":
 
 elif menu == "경로 탐색":
     st.header("4. 경로 탐색")
+
     # 좌표 데이터 로드
     coordinates_data = pd.read_csv("호선별역명좌표.csv", encoding="EUC-KR")
 
@@ -228,6 +234,7 @@ elif menu == "혼잡도 분석":
     line_data = train_station[(train_station['호선명'] == selected_line) & (train_station['지하철역'] == selected_station)]
     
     # 혼잡도 데이터 계산
+
     congestion_data = []
     time_slots = [f"{hour:02d}시-{hour+1:02d}시" for hour in range(4, 24)] + ["00시-01시", "01시-02시"]
     for time_slot in time_slots:
@@ -237,6 +244,7 @@ elif menu == "혼잡도 분석":
             ride = line_data[ride_col].values[0]
             alight = line_data[alight_col].values[0]
             ratio, level = calculate_congestion(ride, alight, selected_line)
+
             congestion_data.append({"시간대": time_slot, "혼잡도 비율 (%)": ratio, "혼잡도 상태": level})
         else:
             congestion_data.append({"시간대": time_slot, "혼잡도 비율 (%)": None, "혼잡도 상태": "데이터 없음"})
@@ -259,3 +267,4 @@ elif menu == "혼잡도 분석":
             st.error(f"🚨 '{selected_station}' 역은 다음 시간대에 혼잡도가 300을 초과합니다: {',  '.join(very_congested_times)}. 꼭 피해 주세요!")
     else:
         st.error("유효한 혼잡도 데이터가 없습니다.")
+

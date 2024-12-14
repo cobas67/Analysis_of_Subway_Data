@@ -31,8 +31,8 @@ pip install -r requirements.txt # 라이브러리 파일 설치
 ```
 venv\Scripts\activate # 가상환경 활성화
 streamlit run station.py # 파이썬 실행창에 입력하면 streamlit이 실행되어 원하는 기능 사용가능 (지도 API는 네이버지도 API를 별도로 발급해서 파이썬 코드에 넣어주세요)
-
 ```
+
 ## 주요 기능 
 
 - 사용월, 호선별, 역명, 시간대별로 승차, 하차 데이터를 나누어 볼 수 있는 기능
