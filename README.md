@@ -26,6 +26,12 @@ python -m venv venv  # 가상환경 생성
 venv\Scripts\activate  # 가상환경 활성화
 pip install -r requirements.txt # 라이브러리 파일 설치
 ```
+#### 4. 네이버지도 api 사용시 .env 파일 작성
+```
+REACT_APP_ID = //ID 입력
+
+REACT_APP_SECRET = //KEY 입력
+```
 
 ## 사용방법
 ```
